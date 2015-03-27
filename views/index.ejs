@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Orlando Code Camp 2015</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Orlando Code Camp Demo</h1>
+
+
+      <!-- Step 1 - Generate an address -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Generate Key</h3>
+        </div>
+        <div class="panel-body">
+
+          <form>
+            <div class="form-group">
+              <label for="secret">Secret Passphrase</label>
+              <input type="text" class="form-control" id="secret" placeholder="ex: this is a secret" value="">
+            </div>
+
+            <button id="secret-button" type="submit" class="btn btn-default">Generate</button>
+
+          </form>
+
+
+          <h5>Private Key (Hex)</h5>
+          <div id="generated-private-key" class="well"> </div>
+          <h5>Public Key (Hex)</h5>
+          <div id="generated-public-key" class="well"> </div>
+          <h5>Public Address</h5>
+          <div id="generated-address" class="well"> </div>
+
+
+            <!-- Step 3 - Get the balance -->
+            <h5>Balance (BTC)</h5>
+            <div id="balance" class="well"> </div>
+
+        </div>
+      </div>
+
+      <!-- Step 2 - Generate a QR Code -->
+      <br />
+      <div id="generated-qr-code"></div>
+      <br />
+
+      <!-- Step 4 - Build a transaction -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Send Transaction</h3>
+        </div>
+        <div class="panel-body">
+
+          <form>
+            <div class="form-group">
+              <label for="sendAddress">Send To Address</label>
+              <input type="text" class="form-control" id="sendAddress" placeholder="ex: 187SzSsg7KYh5ctXwnQmw8AWcjZ5oEFJym" value="mwCCWLxgFqWrBJgKJEhs1yGp5AHTHZxPTM">
+            </div>
+
+            <div class="form-group">
+              <label for="amountToSend">BTC Amount to Send</label>
+              <input type="text" class="form-control" id="amountToSend" placeholder="ex: 0.0001" value="0.0001">
+            </div>
+
+            <button id="send-button" type="submit" class="btn btn-default">Send</button>
+
+          </form>
+
+          <br>
+
+          <h5>Serialized Transaction</h5>
+          <div id="serialized-transaction" class="well"> </div>
+
+          <h5>Send Result</h5>
+          <div id="send-result" class="well"> </div>
+
+
+        </div>
+      </div>
+
+
+    </div>
+  </body>
+
+
+  <link type='css' rel='stylesheet' href='/stylesheets/bootstrap.min.css' />
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="/javascripts/jquery-2.1.1.min.js"></script>
+
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="/javascripts/bitcore.min.js"></script>
+  <script src="/javascripts/bootstrap.min.js"></script>
+
+  <script src="/javascripts/jquery.qrcode.min.js"></script>
+
+  <script src="/javascripts/client.js"></script>
+</html>

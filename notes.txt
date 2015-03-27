@@ -1,0 +1,237 @@
+Demo Links
+
+https://app.gyft.com/me/cards/purchase/
+https://www.theprotocol.tv/adam-draper-boostvc/
+https://test-insight.bitpay.com/api/addr/n2zCR7fqsGyAn6sQYtYhu8vgLe8in7VhvL/utxo
+
+
+------------------------------------------------------------------------------------------------------------
+
+
+<!-- Step 1 - Generate an address -->
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Generate Key</h3>
+  </div>
+  <div class="panel-body">
+
+    <form>
+      <div class="form-group">
+        <label for="secret">Secret Passphrase</label>
+        <input type="text" class="form-control" id="secret" placeholder="ex: this is a secret" value="">
+      </div>
+
+      <button id="secret-button" type="submit" class="btn btn-default">Generate</button>
+
+    </form>
+
+
+    <h5>Private Key (Hex)</h5>
+    <div id="generated-private-key" class="well"> </div>
+    <h5>Public Key (Hex)</h5>
+    <div id="generated-public-key" class="well"> </div>
+    <h5>Public Address</h5>
+    <div id="generated-address" class="well"> </div>
+
+  </div>
+</div>
+
+
+$('#secret-button').click(function (e) {
+
+  e.preventDefault();
+
+  var mySecret = $("#secret").val();
+  var buff = bitcore.deps.Buffer(mySecret);
+  var sha = bitcore.crypto.Hash.sha256(buff);
+
+  var privateKey = new bitcore.PrivateKey(sha, network);
+  var address = privateKey.toAddress(network);
+
+  $("#generated-private-key").text(privateKey.toString());
+  $("#generated-public-key").text(privateKey.publicKey.toString());
+  $("#generated-address").text(address.toString());
+
+
+});
+
+------------------------------------------------------------------------------------------------------------
+
+
+<!-- Step 2 - Generate a QR Code -->
+<br />
+<div id="generated-qr-code"></div>
+<br />
+
+  var qr = "bitcoin:" + address.toString() + "?amount=0.0002";
+  $("#generated-qr-code").empty();
+  $("#generated-qr-code").qrcode({width: 200, height: 200, text: qr });
+
+
+------------------------------------------------------------------------------------------------------------
+
+
+
+  <!-- Step 3 - Get the balance -->
+  <h5>Balance (BTC)</h5>
+  <div id="balance" class="well"> </div>
+
+
+    updateBalance();
+    window.setInterval(updateBalance, 5000);
+
+
+// Grabs the address in the browser and retrieves the balance (confirmed + unconfirmed)
+function updateBalance() {
+
+    var address = $("#generated-address").text();
+
+    $.ajax({
+      url: "/api/balance/" + address
+    })
+      .done(function( res ) {
+
+        console.log("Total balance for address is: " + res.balance + " BTC");
+        $("#balance").text(res.balance + " BTC");
+      });
+}
+
+
+
+router.get('/api/balance/:address', function(req, res) {
+
+  var url = "https://test-insight.bitpay.com/api/addr/" + req.params.address + "/utxo";
+
+  request({url:url, json:true}, function (error, response, body) {
+
+    var retBalance = 0;
+
+    // Iterate over utxos and add up value
+    for (var i in body) {
+      retBalance += body[i].amount;
+    }
+
+    res.json({balance : retBalance});
+  });
+
+});
+
+
+
+------------------------------------------------------------------------------------------------------------
+
+
+      <!-- Step 4 - Build a transaction -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Send Transaction</h3>
+        </div>
+        <div class="panel-body">
+
+          <form>
+            <div class="form-group">
+              <label for="sendAddress">Send To Address</label>
+              <input type="text" class="form-control" id="sendAddress" placeholder="ex: 187SzSsg7KYh5ctXwnQmw8AWcjZ5oEFJym" value="mwCCWLxgFqWrBJgKJEhs1yGp5AHTHZxPTM">
+            </div>
+
+            <div class="form-group">
+              <label for="amountToSend">BTC Amount to Send</label>
+              <input type="text" class="form-control" id="amountToSend" placeholder="ex: 0.0001" value="0.0001">
+            </div>
+
+            <button id="send-button" type="submit" class="btn btn-default">Send</button>
+
+          </form>
+
+          <br>
+
+          <h5>Serialized Transaction</h5>
+          <div id="serialized-transaction" class="well"> </div>
+
+
+
+        </div>
+      </div>
+
+
+$('#send-button').click(function (e) {
+
+    e.preventDefault();
+
+    // Get info from the page
+    var fromAddress = $("#generated-address").text();
+    var toAddress = $("#sendAddress").val();
+
+    var amount = $("#amountToSend").val();
+    var amountSatoshis = parseFloat(amount) * 100000000;
+
+    // Recreate the private key object
+    var mySecret = $("#secret").val();
+    var buff = bitcore.deps.Buffer(mySecret);
+    var sha = bitcore.crypto.Hash.sha256(buff);
+
+    var privateKey = new bitcore.PrivateKey(sha, network);
+
+    $.ajax({
+      url: "/api/uxto/" + fromAddress
+    })
+    .done(function( utxos ) {
+
+      var transaction = new bitcore.Transaction()
+        .from(utxos)            // Feed information about what unspent outputs one can use
+        .to(toAddress, amountSatoshis)  // Add an output with the given amount of satoshis
+        .change(fromAddress)      // Sets up a change address where the rest of the funds will go
+        .sign(privateKey);     // Signs all the inputs it can
+
+        $("#serialized-transaction").text(transaction.serialize());
+
+
+        
+    });
+
+
+});
+
+
+
+router.get('/api/uxto/:address', function(req, res) {
+
+  var url = "https://test-insight.bitpay.com/api/addr/" + req.params.address + "/utxo";
+
+  request({url:url, json:true}, function (error, response, body) {
+    console.log(body);
+    res.json(body);
+  });
+
+});
+
+
+------------------------------------------------------------------------------------------------------------
+
+<!-- Step 5 - Send a transaction -->
+
+
+<h5>Send Result</h5>
+<div id="send-result" class="well"> </div>
+
+              $.ajax({
+                url: "/api/send/" + transaction.serialize()
+              })
+              .done(function( res ) {
+                $("#send-result").text(res);
+              });
+
+
+router.get('/api/send/:transaction', function(req, res) {
+
+  var url = "https://test-insight.bitpay.com/api/tx/send" ;
+
+  request.post({
+    url:url,
+    body : "rawtx=" + req.params.transaction,
+    headers: {'content-type' : 'application/x-www-form-urlencoded'}
+    }, function (error, response, body) {
+
+      res.json(body);
+    });
+});
